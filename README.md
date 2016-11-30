@@ -5,12 +5,14 @@ The aim of this project is to integrate [Stanford CoreNLP](http://stanfordnlp.gi
 into [Apache Lucene](http://lucene.apache.org/) to improve search results and allow more complex
 data analysis.
 
-TODO
-----
+TODO and known issues
+---------------------
 
 This is not a finished "product". Rather, it is a tool I simply needed for a project. Use at your own risk.
 
-* Configuration such as language selection currently requires modifications to the code.
+* Remove code duplication between `CoreNLPTokenStream` and `CoreNLPTokenizer`.
+* Compound (multi-word) entities are not merged into one token.
+* With `ner` enabled and default settings, solr will die with out-of-memory. You need to increase the memory.
 
 Dependencies
 ------------
@@ -27,21 +29,38 @@ Build everything, and copy all the jars into the classpath.
 
 Then you need to define a field type, e.g.
 
-```
+```xml
 <fieldType name="corenlp_en" class="solr.TextField">
   <analyzer type="index">
-    <tokenizer class="com.kno10.corenlplucene.CoreNLPTokenizerFactory"/>
+    <tokenizer class="com.kno10.corenlplucene.CoreNLPTokenizerFactory"
+        annotators="tokenize,ssplit,pos,lemma"
+        parse.model="edu/stanford/nlp/models/srparser/englishSR.ser.gz"
+        tokenize.language="en"
+        tokenize.options="americanize=true,asciiQuotes=true,ptb3Dashes=true,ptb3Ellipsis=true,untokenizable=noneKeep"
+    />
     <filter class="solr.LowerCaseFilterFactory"/>
     <filter class="solr.TypeTokenFilterFactory" types="stoptypes.txt" useWhitelist="false"/>
   </analyzer>
   <analyzer type="query">
-    <tokenizer class="com.kno10.corenlplucene.CoreNLPTokenizerFactory"/>
+    <tokenizer class="com.kno10.corenlplucene.CoreNLPTokenizerFactory"
+        annotators="tokenize,ssplit,pos,lemma"
+        parse.model="edu/stanford/nlp/models/srparser/englishSR.ser.gz"
+        tokenize.language="en"
+        tokenize.options="americanize=true,asciiQuotes=true,ptb3Dashes=true,ptb3Ellipsis=true,untokenizable=noneKeep"
+    />
     <filter class="solr.LowerCaseFilterFactory"/>
     <filter class="solr.TypeTokenFilterFactory" types="stoptypes.txt" useWhitelist="false"/>
   </analyzer>
 </fieldType>
 ```
-where `stoptypes.txt` contains [Penn treebank token types](http://web.mit.edu/6.863/www/PennTreebankTags.html#Word) that you are not interested in. 
+where `stoptypes.txt` contains [Penn treebank token types](http://web.mit.edu/6.863/www/PennTreebankTags.html#Word) that you are not interested in.
+
+The tested annotator combiations are `tokenize,ssplit` (splitting only), `tokenize,ssplit,pos,lemma` (with part-of-speech and lemmatization).
+
+NER mode with `tokenize,ssplit,pos,lemma,ner`, which will also tag persons and
+location tokens, but it will not retain the compound information. This will
+kill your Solr with an out of memory error, unless you increase the memory
+limit; and this has not been tested much.
 
 Peculiarities
 -------------

@@ -33,6 +33,7 @@ import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetEndAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
@@ -95,8 +96,9 @@ public class CoreNLPTokenizer extends Tokenizer {
     }
     termAt.setLength(0);
     termAt.append(word);
-    // Part of speech annotation
-    String pos = token.get(PartOfSpeechAnnotation.class);
+    // NER or part of speech annotation
+    String pos = token.get(NamedEntityTagAnnotation.class);
+    pos = (pos == null || "O".equals(pos)) ? token.get(PartOfSpeechAnnotation.class) : pos;
     typeAt.setType(pos != null ? pos : TypeAttribute.DEFAULT_TYPE);
     // Token character offsets
     int be = token.get(CharacterOffsetBeginAnnotation.class).intValue();

@@ -31,6 +31,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetBeginAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.CharacterOffsetEndAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
@@ -95,13 +96,14 @@ public class CoreNLPTokenStream extends TokenStream {
     CoreLabel token = tokens.next();
     // Use the lemmatized word:
     String word = token.get(LemmaAnnotation.class);
-    if(word == null) { // Fallback if lemmatization is not enabled.
-      token.get(TextAnnotation.class);
+    if(word == null) { // Fallback when no lemmatization happens.
+      word = token.get(TextAnnotation.class);
     }
     termAt.setLength(0);
     termAt.append(word);
     // Part of speech annotation
-    String pos = token.get(PartOfSpeechAnnotation.class);
+    String pos = token.get(NamedEntityTagAnnotation.class);
+    pos = (pos == null || "O".equals(pos)) ? token.get(PartOfSpeechAnnotation.class) : pos;
     typeAt.setType(pos != null ? pos : TypeAttribute.DEFAULT_TYPE);
     // Token character offsets
     int be = token.get(CharacterOffsetBeginAnnotation.class).intValue() + fragmentsLength;

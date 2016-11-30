@@ -19,6 +19,7 @@ package com.kno10.corenlplucene;
  */
 
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.util.TokenizerFactory;
@@ -26,18 +27,16 @@ import org.apache.lucene.util.AttributeFactory;
 
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.util.PropertiesUtils;
 
 public class CoreNLPTokenizerFactory extends TokenizerFactory {
-  AnnotationPipeline pipeline = new StanfordCoreNLP(PropertiesUtils.asProperties(//
-      "annotators", "tokenize,ssplit,pos,lemma", //
-      "parse.model", "edu/stanford/nlp/models/srparser/englishSR.ser.gz", //
-      "tokenize.language", "en", //
-      "tokenize.options", "americanize=true,asciiQuotes=true,ptb3Dashes=true,ptb3Ellipsis=true,untokenizable=noneKeep" //
-  ));
+  AnnotationPipeline pipeline;
 
   public CoreNLPTokenizerFactory(Map<String, String> args) {
     super(args);
+    Properties p = new Properties();
+    for (Map.Entry<String, String> ent : args.entrySet())
+      p.setProperty(ent.getKey(), ent.getValue());
+    pipeline = new StanfordCoreNLP(p);
   }
 
   @Override
